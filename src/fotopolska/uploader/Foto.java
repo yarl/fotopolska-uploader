@@ -237,7 +237,7 @@ public class Foto {
             "|other_fields = \n" +
             "}}\n" +
             coord + 
-            "\n=={{int:license-header}}==\n" + license + "{{Fotopolska review|Yarl|2012-10-10}}\n\n[[Category:" + city + "]]";
+            "\n=={{int:license-header}}==\n" + license + "{{Fotopolska review|Yarl|2012-10-10}}\n{{Watermark}}\n\n[[Category:" + city + "]]";
         
         return text;
     }
