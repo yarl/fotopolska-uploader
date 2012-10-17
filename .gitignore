@@ -1,4 +1,7 @@
 build
+_lists
 dist
 store
 nbproject\private
+.save
+default.txt

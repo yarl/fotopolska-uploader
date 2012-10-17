@@ -170,16 +170,17 @@
               <Group type="102" alignment="1" attributes="0">
                   <EmptySpace min="-2" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" alignment="0" attributes="0">
-                          <Component id="tName" pref="143" max="32767" attributes="0"/>
-                          <EmptySpace min="-2" max="-2" attributes="0"/>
-                          <Component id="tPassword" min="-2" pref="132" max="-2" attributes="0"/>
-                      </Group>
-                      <Component id="tServer" max="32767" attributes="0"/>
+                      <Component id="tName" max="32767" attributes="0"/>
+                      <Component id="tServer" pref="143" max="32767" attributes="0"/>
                   </Group>
                   <EmptySpace min="-2" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                      <Component id="tPassword" max="32767" attributes="0"/>
+                      <Component id="tDate" pref="132" max="32767" attributes="0"/>
+                  </Group>
+                  <EmptySpace max="-2" attributes="0"/>
                   <Component id="bLogin" min="-2" pref="107" max="-2" attributes="0"/>
-                  <EmptySpace min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -195,6 +196,7 @@
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="bLogin" alignment="3" min="-2" pref="20" max="-2" attributes="0"/>
                       <Component id="tServer" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="tDate" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
@@ -204,14 +206,18 @@
       <SubComponents>
         <Component class="javax.swing.JTextField" name="tName">
           <Properties>
-            <Property name="text" type="java.lang.String" value="YarluFileBot"/>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="user" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JPasswordField" name="tPassword">
         </Component>
         <Component class="javax.swing.JTextField" name="tServer">
           <Properties>
-            <Property name="text" type="java.lang.String" value="commons.wikimedia.org"/>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="server" type="code"/>
+            </Property>
           </Properties>
         </Component>
         <Component class="javax.swing.JButton" name="bLogin">
@@ -221,6 +227,16 @@
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bLoginActionPerformed"/>
           </Events>
+        </Component>
+        <Component class="javax.swing.JTextField" name="tDate">
+          <Properties>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+              <Connection code="date" type="code"/>
+            </Property>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="9"/>
+          </AuxValues>
         </Component>
       </SubComponents>
     </Container>

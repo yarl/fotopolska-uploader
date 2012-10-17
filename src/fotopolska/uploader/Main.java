@@ -1,12 +1,8 @@
 package fotopolska.uploader;
 
 import java.awt.Color;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.awt.event.*;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,15 +16,25 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import org.wikipedia.Wiki;
 
-public final class Main extends javax.swing.JFrame {
+public final class Main extends javax.swing.JFrame implements Serializable {
     //tech
     private volatile boolean stopRq = false;
     int i = 0;
     
-    Wiki w;
+    //text
+    String user = "YarluFileBot";
+    String server = "commons.wikimedia.org";
+    String date = "2012-10-15";
+    
+    //wiki
+    Wiki wiki = new Wiki(server);
     
     public Main() {
+        Load();
+        
+        addWindowListener(exit);
         initComponents();
+        
         setLocationRelativeTo(null);
         updateCounter();
         
@@ -48,6 +54,9 @@ public final class Main extends javax.swing.JFrame {
                 wasAtBottom = ((brm.getValue() + brm.getExtent()) == brm.getMaximum());
             }
         }); 
+        File f = new File("default.txt");
+        if(f.exists())
+            loadList(f);
     }
 
     @SuppressWarnings("unchecked")
@@ -65,6 +74,7 @@ public final class Main extends javax.swing.JFrame {
         tPassword = new javax.swing.JPasswordField();
         tServer = new javax.swing.JTextField();
         bLogin = new javax.swing.JButton();
+        tDate = new javax.swing.JTextField();
         counter = new javax.swing.JLabel();
         scroll = new javax.swing.JScrollPane();
         loger = new javax.swing.JTextPane();
@@ -130,9 +140,9 @@ public final class Main extends javax.swing.JFrame {
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Sterowanie"));
 
-        tName.setText("YarluFileBot");
+        tName.setText(user);
 
-        tServer.setText("commons.wikimedia.org");
+        tServer.setText(server);
 
         bLogin.setText("Zaloguj");
         bLogin.addActionListener(new java.awt.event.ActionListener() {
@@ -141,6 +151,8 @@ public final class Main extends javax.swing.JFrame {
             }
         });
 
+        tDate.setText(date);
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -148,11 +160,12 @@ public final class Main extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(tName, javax.swing.GroupLayout.DEFAULT_SIZE, 143, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(tPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(tServer))
+                    .addComponent(tName)
+                    .addComponent(tServer, javax.swing.GroupLayout.DEFAULT_SIZE, 143, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(tPassword)
+                    .addComponent(tDate, javax.swing.GroupLayout.DEFAULT_SIZE, 132, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(bLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -167,7 +180,8 @@ public final class Main extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(bLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tServer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(tServer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(tDate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -304,41 +318,7 @@ public final class Main extends javax.swing.JFrame {
         Thread t = new Thread(run);
         t.start();
     }//GEN-LAST:event_bStartActionPerformed
-
-    void stopRq() {
-        stopRq = true;
-        bLoadFile.setEnabled(true);
-        bClear.setEnabled(true);
-        bDel.setEnabled(true);      
-    }
-    
-    void uploadFile(String number) {
-        updateCounter();
-        logBold("Wczytuję " + i + "...\n");
-        
-        if(!number.contains("OK")) {
-            try {
-                Foto f = new Foto(number);
-                if(f.isUploadable()) {
-                    try {
-                        log(f.toString());
-                        int j = JOptionPane.showConfirmDialog(rootPane, f.toString());
-                        if(j==0) {
-                            w.upload(f.getFileSource(), f.getFileName(), f.getWikiText(), "import from fotopolska.eu");
-                            model.set(i, model.get(i) + " - OK");
-                        } else if(j==2)
-                            stopRq();
-                    } catch (LoginException ex) {
-                        Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                } else 
-                    log("Nie nadaje się\n");
-            } catch (IOException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-    
+   
     private void bLoadFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bLoadFileActionPerformed
         class Filter extends FileFilter {
             @Override
@@ -417,9 +397,9 @@ public final class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_bStopActionPerformed
 
     private void bLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bLoginActionPerformed
-        w = new Wiki(tServer.getText());
+        wiki = new Wiki(tServer.getText());
         try {
-            w.login(tName.getText(), tPassword.getPassword());
+            wiki.login(tName.getText(), tPassword.getPassword());
             bLogin.setText("Zalogowano");
             bLogin.setEnabled(false);
         } catch (IOException | FailedLoginException ex) {
@@ -457,11 +437,72 @@ public final class Main extends javax.swing.JFrame {
         t.start();
     }//GEN-LAST:event_bStartSingleActionPerformed
 
-
+    void stopRq() {
+        stopRq = true;
+        bLoadFile.setEnabled(true);
+        bClear.setEnabled(true);
+        bDel.setEnabled(true);    
+        logBold("\nZatrzymano");
+    }
+    
+    void uploadFile(String number) {
+        updateCounter();
+        logBold("\nWczytuję " + i + "...\n");
+        list.setSelectedIndex(i);
+        
+        if(!number.contains("OK")) {
+            try {
+                Foto f = new Foto(number);
+                log("\t" + f.getFileName()+"\n");
+                if(f.isUploadable()) {
+                    /*
+                    //log(f.toString());
+                    String text = f.toString();
+                    if(wiki.isPageExist(f.getFileName())) text += "\nPOPRAWIĆ OPIS?";
+                    //
+                    
+                    int j = JOptionPane.showConfirmDialog(rootPane, text);
+                    if(j==0) {
+                    */
+                        try {
+                            if(wiki.isPageExist(f.getFileName())) {
+                                if(JOptionPane.showConfirmDialog(rootPane, "Nadpisać?") == 0) {
+                                    log("\t" + "Nadpisuję opis...\n");
+                                    wiki.edit("File:"+f.getFileName(), f.getWikiText(), "update file desc.");
+                                    logGreen("\t" + "Nadpisano opis\n");
+                                    model.set(i, model.get(i) + " - OK");
+                                }
+                            } else {
+                                log("\t" + "Przesyłam plik...\n");
+                                wiki.upload(f.getFileSource(), f.getFileName(), f.getWikiText(), "import from fotopolska.eu");
+                                logGreen("\t" + "Plik przesłany\n");
+                                model.set(i, model.get(i) + " - OK");
+                            } 
+                        } catch (IOException | LoginException ex) {
+                            logRed("\t" + "Błąd:" + ex + "\n");
+                            model.set(i, model.get(i) + " - error");
+                        }  
+                    /*
+                    } else if(j==2) stopRq();
+                    */
+                } else {
+                    logRed("\tNie nadaje się\n");
+                    model.set(i, model.get(i) + " - skip");
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    
     public void updateCounter() {
         counter.setText("Element: " + i + " / " + list.getModel().getSize());
     }
     
+    /*
+     * LOG
+     */
     public void log(String s) {
         try {
             Document doc = loger.getDocument();
@@ -500,6 +541,34 @@ public final class Main extends javax.swing.JFrame {
         }
     }
     
+    public void Save() {
+        ObjectOutputStream out;
+        try {
+            out = new ObjectOutputStream(new FileOutputStream(".save"));
+            out.writeObject(tName.getText());
+            out.writeObject(tDate.getText());
+            out.writeObject(tServer.getText());
+            out.close();
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(null, "Saving error: " + ex);
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void Load() {
+        try {
+            FileInputStream f = new FileInputStream(".save");
+            if(f!=null) {
+                ObjectInputStream in = new ObjectInputStream(f);
+                user = (String) in.readObject();
+                date = (String) in.readObject();
+                server = (String) in.readObject();
+            }
+        } catch (FileNotFoundException ex) {
+        } catch (ClassNotFoundException ex) {
+        } catch (IOException ex) {}
+    }
+    
     public static void main(String args[]) {
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code">
         try {
@@ -533,9 +602,18 @@ public final class Main extends javax.swing.JFrame {
     private javax.swing.JList list;
     private javax.swing.JTextPane loger;
     private javax.swing.JScrollPane scroll;
+    public static javax.swing.JTextField tDate;
     private javax.swing.JTextField tName;
     private javax.swing.JPasswordField tPassword;
     private javax.swing.JTextField tServer;
     // End of variables declaration//GEN-END:variables
+
     DefaultListModel model = new DefaultListModel();
+    WindowListener exit = new WindowAdapter() {
+        @Override
+        public void windowClosing(WindowEvent evt) {
+            Save();
+            System.exit(0);
+        }
+    };
 }

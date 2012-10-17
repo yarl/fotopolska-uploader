@@ -1,15 +1,17 @@
 package fotopolska.uploader;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class Foto {
+public class Foto implements Serializable {
     Document doc;
     String number;
     String uploader;
@@ -63,12 +65,14 @@ public class Foto {
         
         if(!e.isEmpty()) {
             if(!e.text().equals("fotopolska.eu - Polska na fotografii"))
-                text = e.text().replace("<i>", "").replace("</i", "").replace("<br>", "") + " (" + number + ")";
+                text = e.text().replaceAll("<[uib]>", "").replaceAll("</[uib]", "").replace("<br>", "") + " (" + number + ")";
             else {
                 if(city!=null) 
                     text = city + " - fotopolska.eu (" + number + ")";
-                else
+                else {
                    text = "fotopolska.eu (" + number + ")"; 
+                   city = "?";
+                }
             } 
         }
         return text + ".jpg";
@@ -81,17 +85,36 @@ public class Foto {
     
     private String setLocation() {
         Elements e = doc.select("table td.sz7 b");
-        if(e!=null || !e.isEmpty()) {
-            String text = "{{Building address\n |Street name = \n |House number = \n |House name = \n |Postal code = \n |City = \n" +
-                    " |State = \n |Country = PL\n |Listing = \n}}\n";
+        if(e!=null && e.text().length()>0) {
+            String text = "|other_fields_1 = {{Building address\n |Street name = \n |House number = \n |House name = \n |Postal code = \n |City = \n" +
+                    " |Powiat = \n |State = \n |Country = PL\n |Listing = \n}}\n";
             String[] texts = e.get(0).text().split(" / ");
             if(texts.length> 1) {
                 if(!texts[1].contains("kolejowe")) {
                     //województwo
-                    text = text.replace("|State = ", "|State = " + texts[1].substring(5));
+                    Map voiv = new HashMap<>();
+                    voiv.put("dolnośląskie", "DS");
+                    voiv.put("kujawsko-pomorskie","KP");
+                    voiv.put("lubelskie","LU");
+                    voiv.put("lubuskie","LB");
+                    voiv.put("łódzkie","LD");
+                    voiv.put("małopolskie","MA");
+                    voiv.put("mazowieckie","MZ");
+                    voiv.put("opolskie","OP");
+                    voiv.put("podkarpackie","PK");
+                    voiv.put("podlaskie","PD");
+                    voiv.put("pomorskie","PM");
+                    voiv.put("śląskie","SL");
+                    voiv.put("świętokrzyskie","SK");
+                    voiv.put("warmińsko-mazurskie","WN");
+                    voiv.put("wielkopolskie","WP");
+                    voiv.put("zachodniopomorskie","ZP");
+                    
+                    text = text.replace("|State = ", "|State = " + voiv.get(texts[1].substring(5)));
 
                     //miasto
                     if(texts[2].contains("Powiat")) {
+                        text = text.replace("|Powiat = ", "|Powiat = " + texts[2]);
                         text = text.replace("|City = ", "|City = " + texts[3]);
                         city = texts[3];
                     }
@@ -132,9 +155,11 @@ public class Foto {
     
     private String setDate() {
         String text = "?";
+        //exif
         if(!doc.select("div#exif").isEmpty()) {
             Element e = doc.select("div#exif").get(0);
             text = e.text().replaceAll(".*([0-9]{4}:[0-9]{2}:[0-9]{2}).*", "$1").replace(":", "-");
+        //text
         } else {
             String[] month = {"styczeń", "luty", "marzec", "kwiecień", "maj", "czerwiec", "lipiec", "sierpień", "wrzesień", "październik", "listopad", "grudzień"};
             Element e = doc.select(".sz7b").get(0);
@@ -148,7 +173,7 @@ public class Foto {
                     break;
                 }
             }
-            text = text.replaceAll("([0-9]{4})-([0-9]{2})-([0-9])", "$1-$2-0$3");
+            text = text.replaceAll("^([0-9]{4})-([0-9]{2})-([0-9])$", "$1-$2-0$3");
             
             if(text.contains("Zdjęcie z lat"))
                 text = text.replace("Zdjęcie z lat ", "");
@@ -236,8 +261,8 @@ public class Foto {
             "|other_versions = \n" +
             "|other_fields = \n" +
             "}}\n" +
-            coord + 
-            "\n=={{int:license-header}}==\n" + license + "{{Fotopolska review|Yarl|2012-10-10}}\n{{Watermark}}\n\n[[Category:" + city + "]]";
+            coord + "{{Watermark}}\n" +
+            "\n=={{int:license-header}}==\n" + license + "{{Fotopolska review|Yarl|" + Main.tDate.getText() + "}}\n\n[[Category:" + city + "]]";
         
         return text;
     }
